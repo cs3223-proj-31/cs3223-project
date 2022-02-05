@@ -1,0 +1,19 @@
+package simpledb.parse;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+
+class LexerTest2 {
+
+	@Test
+	void queryEquality_success() {
+		String query = "a = 1";
+		Lexer lexer = new Lexer(query);
+		x = lex.eatId();
+		lex.eatDelim('=');
+		y = lex.eatIntConstant();
+		
+	}
+
+}

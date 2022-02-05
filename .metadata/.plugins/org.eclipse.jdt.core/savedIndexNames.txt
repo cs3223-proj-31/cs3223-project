@@ -1,0 +1,17 @@
+INDEX VERSION 1.131+/home/naws/oldEclipse-workspace/.metadata/.plugins/org.eclipse.jdt.core
+1827129675.index
+2195250705.index
+4215767343.index
+2706037318.index
+2703581164.index
+1198073522.index
+872646017.index
+3271972879.index
+1218450191.index
+2038020647.index
+1917519394.index
+1602584656.index
+3551370332.index
+2044632793.index
+4010541665.index
+3411337112.index
