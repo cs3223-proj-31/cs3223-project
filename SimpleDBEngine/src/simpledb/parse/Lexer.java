@@ -21,11 +21,6 @@ public class Lexer {
       tok.ordinaryChar('.');   //disallow "." in identifiers
       tok.wordChars('_', '_'); //allow "_" in identifiers
 
-      //treat operators as identifiers
-	   tok.wordChars('>', '>');
-	   tok.wordChars('=', '=');
-	   tok.wordChars('<', '<');
-
       tok.lowerCaseMode(true); //ids and keywords are converted
       nextToken();
    }
@@ -76,11 +71,14 @@ public class Lexer {
    }
    
    /**
-    * Returns true if the current token is a legal operator.
-    * @return true if the current token is an operator
+    * Returns true if the current token is a legal operator symbol.
+    * @return true if the current token is an operator symbol
     */
    public boolean matchOp() {
-      return matchKeyword("<") || matchKeyword("<=") || matchKeyword(">") || matchKeyword(">=") || matchKeyword("!=") || matchKeyword("<>") || matchKeyword("=");
+	   return matchDelim('<')
+			   || matchDelim('=')
+			   || matchDelim('>')
+			   || matchDelim('!');
    }
    
 //Methods to "eat" the current token
@@ -154,17 +152,23 @@ public class Lexer {
    
    /**
     * Throws an exception if the current token is not 
-    * an operator.
-    * Otherwise, returns the operator string 
-    * and moves to the next token.
+    * an operator symbol.
+    * Otherwise, returns the operator string made from
+    * concatenating the symbols and moves to the next
+    * token.
     * @return the string value of the current token
     */
    public String eatOp() {
-      if (!matchOp())
-         throw new BadSyntaxException();
-      String s = tok.sval;
-      nextToken();
-      return s;
+	   if (!matchOp())
+		   throw new BadSyntaxException();
+	   
+	   String op = "";
+	   while (matchOp()) {
+		   op += (char) tok.ttype;
+		   nextToken();
+	   }
+	   
+	   return op;
    }
    
    private void nextToken() {
