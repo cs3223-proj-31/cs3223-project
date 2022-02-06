@@ -71,9 +71,10 @@ class IndexMgr {
          if (ts.getString("tablename").equals(tblname)) {
          String idxname = ts.getString("indexname");
          String fldname = ts.getString("fieldname");
+         String idxtype = ts.getString("indextype");
          Layout tblLayout = tblmgr.getLayout(tblname, tx);
          StatInfo tblsi = statmgr.getStatInfo(tblname, tblLayout, tx);
-         IndexInfo ii = new IndexInfo(idxname, fldname, tblLayout.schema(), tx, tblsi);
+         IndexInfo ii = new IndexInfo(idxname, fldname, idxtype, tblLayout.schema(), tx, tblsi);
          result.put(fldname, ii);
       }
       ts.close();
