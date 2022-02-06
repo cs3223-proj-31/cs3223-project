@@ -254,9 +254,11 @@ public class Parser {
 	   if (lex.matchKeyword("btree")) {
 		   lex.eatKeyword("btree");
 		   return "btree";
-	   } else {
+	   } else if (lex.matchKeyword("hash")){
 		   lex.eatKeyword("hash");
 		   return "hash";
+	   } else {
+		   throw new BadSyntaxException();
 	   }
    }
 }
