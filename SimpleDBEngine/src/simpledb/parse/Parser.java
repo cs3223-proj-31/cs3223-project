@@ -244,7 +244,22 @@ public class Parser {
       lex.eatDelim('(');
       String fldname = field();
       lex.eatDelim(')');
-      return new CreateIndexData(idxname, tblname, fldname);
+      lex.eatKeyword("using");
+      String idxtype = indexType();
+      
+      return new CreateIndexData(idxname, tblname, fldname, idxtype);
+   }
+   
+   private String indexType() {
+	   if (lex.matchKeyword("btree")) {
+		   lex.eatKeyword("btree");
+		   return "btree";
+	   } else if (lex.matchKeyword("hash")){
+		   lex.eatKeyword("hash");
+		   return "hash";
+	   } else {
+		   throw new BadSyntaxException();
+	   }
    }
 }
 

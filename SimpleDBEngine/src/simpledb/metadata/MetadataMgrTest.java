@@ -57,8 +57,10 @@ public class MetadataMgrTest {
       System.out.println("View def = " + v);
 
       // Part 4: Index Metadata
-      mdm.createIndex("indexA", "MyTable", "A", tx);
-      mdm.createIndex("indexB", "MyTable", "B", tx);
+      // Note: before Lab 2's changes, indexes were of the
+      // hash type by default.
+      mdm.createIndex("indexA", "MyTable", "A", "hash", tx);
+      mdm.createIndex("indexB", "MyTable", "B", "hash", tx);
       Map<String,IndexInfo> idxmap = mdm.getIndexInfo("MyTable", tx);
          
       IndexInfo ii = idxmap.get("A");

@@ -17,7 +17,7 @@ import simpledb.index.btree.BTreeIndex; //in case we change to btree indexing
  * @author Edward Sciore
  */
 public class IndexInfo {
-   private String idxname, fldname;
+   private String idxname, fldname, idxtype;
    private Transaction tx;
    private Schema tblSchema;
    private Layout idxLayout;
@@ -27,14 +27,16 @@ public class IndexInfo {
     * Create an IndexInfo object for the specified index.
     * @param idxname the name of the index
     * @param fldname the name of the indexed field
-    * @param tx the calling transaction
+    * @param idxtype the type of the index
     * @param tblSchema the schema of the table
+    * @param tx the calling transaction
     * @param si the statistics for the table
     */
-   public IndexInfo(String idxname, String fldname, Schema tblSchema,
-                    Transaction tx,  StatInfo si) {
+   public IndexInfo(String idxname, String fldname, String idxtype,
+                    Schema tblSchema,  Transaction tx, StatInfo si) {
       this.idxname = idxname;
       this.fldname = fldname;
+      this.idxtype = idxtype;
       this.tx = tx;
       this.tblSchema = tblSchema;
       this.idxLayout = createIdxLayout();
@@ -46,7 +48,10 @@ public class IndexInfo {
     * @return the Index object associated with this information
     */
    public Index open() {
-      return new HashIndex(tx, idxname, idxLayout);
+	   if (isBTree())
+		   return new BTreeIndex(tx, idxname, idxLayout);
+	   else
+		   return new HashIndex(tx, idxname, idxLayout);
 //    return new BTreeIndex(tx, idxname, idxLayout);
    }
    
@@ -64,7 +69,11 @@ public class IndexInfo {
    public int blocksAccessed() {
       int rpb = tx.blockSize() / idxLayout.slotSize();
       int numblocks = si.recordsOutput() / rpb;
-      return HashIndex.searchCost(numblocks, rpb);
+      
+      if (isBTree())
+    	  return BTreeIndex.searchCost(numblocks, rpb);
+      else
+    	  return HashIndex.searchCost(numblocks, rpb);
 //    return BTreeIndex.searchCost(numblocks, rpb);
    }
    
@@ -108,5 +117,15 @@ public class IndexInfo {
          sch.addStringField("dataval", fldlen);
       }
       return new Layout(sch);
+   }
+   
+   /**
+    * Return true if the index is a B-Tree index;
+    * false otherwise. 
+    * @return true if the index is a B-Tree index;
+    * false otherwise
+    */
+   private boolean isBTree() {
+	   return idxtype.equals("btree");
    }
 }
