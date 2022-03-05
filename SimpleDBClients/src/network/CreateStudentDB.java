@@ -15,7 +15,7 @@ public class CreateStudentDB {
          stmt.executeUpdate(s);
          System.out.println("Table STUDENT created.");
 
-         s = "create index MajorIdIdx on student(MajorId)";
+         s = "create index MajorIdIdx on student(MajorId) using btree";
          stmt.executeUpdate(s);
          System.out.println("STUDENT: MajorIdIdx index inserted.");
 
@@ -78,7 +78,7 @@ public class CreateStudentDB {
          stmt.executeUpdate(s);
          System.out.println("Table ENROLL created.");
 
-         s = "create index EnrollIdx on enroll(StudentId)";
+         s = "create index EnrollIdx on enroll(StudentId) using btree";
          stmt.executeUpdate(s);
          System.out.println("ENROLL: EnrollIdx index inserted.");
 
