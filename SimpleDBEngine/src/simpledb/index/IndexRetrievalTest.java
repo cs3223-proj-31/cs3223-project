@@ -1,5 +1,7 @@
 package simpledb.index;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 
 import simpledb.metadata.*;
@@ -20,9 +22,12 @@ public class IndexRetrievalTest {
       UpdateScan studentscan = (UpdateScan) studentplan.open();
 
       // Open the index on MajorId.
-      Map<String,IndexInfo> indexes = mdm.getIndexInfo("student", tx);
+      Map<String, IndexInfo> indexes = mdm.getIndexInfo("student", tx);
       IndexInfo ii = indexes.get("majorid");
       Index idx = ii.open();
+
+      ArrayList<String> res = new ArrayList<>();
+      ArrayList<String> expected = new ArrayList<>(Arrays.asList("amy", "sue", "kim", "pat"));
 
       // Retrieve all index records having a dataval of 20.
       idx.beforeFirst(new Constant(20));
@@ -31,7 +36,15 @@ public class IndexRetrievalTest {
          RID datarid = idx.getDataRid();
          studentscan.moveToRid(datarid);
          System.out.println(studentscan.getString("sname"));
+
+         res.add(studentscan.getString("sname"));
       }
+
+      if (!res.equals(expected)) {
+         throw new RuntimeException("TEST FAILED");
+      }
+
+      System.out.println("TEST PASSED");
 
       // Close the index and the data table.
       idx.close();
