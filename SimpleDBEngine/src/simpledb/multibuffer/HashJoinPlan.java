@@ -68,5 +68,36 @@ public class HashJoinPlan implements Plan {
 		return val.hashCode() % k;
 	}
 	
-
+	private void hashDistributeRecords(Plan p, TempTable[] tts) {
+		int h, k = tts.length;
+		Constant joinfldval;
+		UpdateScan[] uss = new UpdateScan[k];
+		
+		// Open a scan for k temp tables.
+		for (int i = 0; i < k; i++) {
+			uss[i] = tts[i].open();
+		}
+		
+		Scan scan = p.open();
+		Schema sch = p.schema();
+		
+		// For each record of p...
+		while (scan.next()) {
+			joinfldval = scan.getVal(joinfield);
+			// ...hash the record's join field to get h...
+			h = hashWithinK(k, joinfldval);
+			// ...and copy the record to the h-th temp table.
+			uss[h].insert();
+			for (String fldname : sch.fields()) {
+				uss[h].setVal(fldname, scan.getVal(fldname));
+			}
+		}
+		
+		// Close the temp scans.
+		for (UpdateScan us : uss) {
+			us.close();
+		}
+		
+		scan.close();
+	}
 }
