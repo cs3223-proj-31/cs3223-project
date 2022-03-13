@@ -6,6 +6,7 @@ import simpledb.record.*;
 import simpledb.query.*;
 import simpledb.metadata.*;
 import simpledb.index.planner.*;
+import simpledb.materialize.MergeJoinPlan;
 import simpledb.multibuffer.MultibufferProductPlan;
 import simpledb.plan.*;
 
@@ -52,9 +53,9 @@ class TablePlanner {
    
    /**
     * Constructs a join plan of the specified plan
-    * and the table.  The plan will use an indexjoin, if possible.
-    * (Which means that if an indexselect is also possible,
-    * the indexjoin operator takes precedence.)
+    * and the table.  The plan will use choose an optimal
+    * join algorithm between nested loops, merge join and
+    * index join. Optimality is determined by least blocks accessed.
     * The method returns null if no join is possible.
     * @param current the specified plan
     * @return a join plan of the plan and this table
@@ -64,9 +65,18 @@ class TablePlanner {
       Predicate joinpred = mypred.joinSubPred(myschema, currsch);
       if (joinpred == null)
          return null;
+      System.out.println("attempting index join");
       Plan p = makeIndexJoin(current, currsch);
-      if (p == null)
+      Plan productJoin = makeProductJoin(current, currsch);
+      if (p == null || p.blocksAccessed() > productJoin.blocksAccessed()){
+         System.out.println("nested preferred");
          p = makeProductJoin(current, currsch);
+      }
+      Plan mergeJoin = makeMergeJoin(current, currsch);
+      if (p == null || mergeJoin != null && p.blocksAccessed() > mergeJoin.blocksAccessed()) {
+         System.out.println("merge preferred");
+         p = mergeJoin;
+      }
       return p;
    }
    
@@ -99,6 +109,18 @@ class TablePlanner {
          if (outerfield != null && currsch.hasField(outerfield)) {
             IndexInfo ii = indexes.get(fldname);
             Plan p = new IndexJoinPlan(current, myplan, ii, outerfield);
+            p = addSelectPred(p);
+            return addJoinPred(p, currsch);
+         }
+      }
+      return null;
+   }
+
+   private Plan makeMergeJoin(Plan current, Schema currsch) {
+      for (String fldname : myschema.fields()) {
+         String outerfield = mypred.equatesWithField(fldname);
+         if (outerfield != null && currsch.hasField(outerfield)) {
+            Plan p = new MergeJoinPlan(tx, myplan, current, fldname, outerfield);
             p = addSelectPred(p);
             return addJoinPred(p, currsch);
          }
