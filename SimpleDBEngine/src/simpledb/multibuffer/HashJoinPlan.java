@@ -63,5 +63,10 @@ public class HashJoinPlan implements Plan {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	private int hashWithinK(int k, Constant val) {
+		return val.hashCode() % k;
+	}
+	
 
 }
