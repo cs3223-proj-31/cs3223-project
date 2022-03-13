@@ -14,6 +14,7 @@ public class QueryData {
    private Collection<String> tables;
    private Predicate pred;
    private List<List<String>> sortFields;
+   private boolean distinct;
 
    /**
     * Saves the field and table list and predicate.
@@ -24,11 +25,12 @@ public class QueryData {
       this.pred = pred;
    }
 
-   public QueryData(List<String> fields, Collection<String> tables, Predicate pred, List<List<String>> sortFields) {
+   public QueryData(List<String> fields, Collection<String> tables, Predicate pred, List<List<String>> sortFields, boolean distinct) {
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
       this.sortFields = sortFields;
+      this.distinct = distinct;
    }
 
    /**
@@ -68,8 +70,13 @@ public class QueryData {
       return pred;
    }
 
+   public boolean distinct() {
+      return distinct;
+   }
+
    public String toString() {
       String result = "select ";
+      if(distinct) result += "distinct ";
       for (String fldname : fields)
          result += fldname + ", ";
       result = result.substring(0, result.length() - 2); // remove final comma

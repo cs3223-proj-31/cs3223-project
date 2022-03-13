@@ -147,6 +147,14 @@ public class Lexer {
       nextToken();
    }
 
+   public boolean eatDistinct() {
+      if(!matchKeyword("distinct")) {
+         nextToken();
+         return true;
+      }
+      return false;
+   }
+
    /**
     * Throws an exception if the current token is not
     * an identifier.
