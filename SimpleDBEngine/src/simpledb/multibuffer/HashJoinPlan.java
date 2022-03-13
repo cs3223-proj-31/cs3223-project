@@ -23,7 +23,7 @@ public class HashJoinPlan implements Plan {
 	private Plan p1, p2;  // p1 corresponds to T1; similar for p2 and T2.
 	private Schema schema = new Schema();
 	private Predicate pred;
-	private String joinfield;
+	private String joinfield;  // TODO include it in the constructor.
 	
 	public HashJoinPlan(Transaction tx, Plan p1, Plan p2, Predicate pred) {
 		this.tx = tx;
@@ -36,8 +36,43 @@ public class HashJoinPlan implements Plan {
 
 	@Override
 	public Scan open() {
-		// TODO Auto-generated method stub
-		return null;
+		Plan p;
+		int k = tx.availableBuffs() - 1;  // Number of temporary tables to be
+		                                  // used.
+		if (p2.blocksAccessed() <= k) {
+			p = new MultibufferProductPlan(tx, p1, p2);
+			p = new SelectPlan(p, pred);
+			return p.open();
+		}
+		
+		// Temporary tables for T1 and T2, respectively.
+		TempTable[] tts1 = new TempTable[k];
+		TempTable[] tts2 = new TempTable[k];
+		
+		hashDistributeRecords(p1, tts1);
+		hashDistributeRecords(p2, tts2);
+		
+		HashJoinPlan[] hjps = new HashJoinPlan[k];
+		
+		for (int i = 0; i < k; i++) {
+			TempTable vi = tts1[i];
+			TempTable wi = tts2[i];
+			
+			// TODO replace null values with proper metadata managers.
+			TablePlan pvi = new TablePlan(tx, vi.tableName(), null);
+			TablePlan pwi = new TablePlan(tx, wi.tableName(), null);
+			
+			// Recursively hashjoin vi and wi.
+			hjps[i] = new HashJoinPlan(tx, pvi, pwi, pred);
+		}
+		
+		HashJoinScan[] hjss = new HashJoinScan[k];
+		
+		for (int i = 0; i < k; i++) {
+			hjss[i] = (HashJoinScan) hjps[i].open();
+		}
+		
+		return new HashJoinScan(hjss);
 	}
 
 	@Override
