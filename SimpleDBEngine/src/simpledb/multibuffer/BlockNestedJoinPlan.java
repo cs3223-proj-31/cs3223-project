@@ -21,6 +21,7 @@ public class BlockNestedJoinPlan implements Plan {
     * @param tx the calling transaction
     */
    public BlockNestedJoinPlan(Transaction tx, Plan p1, Plan p2, String fldname1, String fldname2) {
+	this.tx = tx;
     this.fldname1 = fldname1;
     this.p1 = new MaterializePlan(tx, p1);
 
