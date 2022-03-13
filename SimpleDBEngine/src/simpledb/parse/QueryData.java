@@ -2,6 +2,9 @@ package simpledb.parse;
 
 import java.util.*;
 
+import simpledb.materialize.*;
+import simpledb.materialize.SumFn;
+
 import simpledb.query.*;
 
 /**
@@ -14,6 +17,7 @@ public class QueryData {
    private Collection<String> tables;
    private Predicate pred;
    private List<List<String>> sortFields;
+   private List<List<String>> groupFields;
 
    /**
     * Saves the field and table list and predicate.
@@ -29,6 +33,15 @@ public class QueryData {
       this.tables = tables;
       this.pred = pred;
       this.sortFields = sortFields;
+   }
+
+   public QueryData(List<String> fields, Collection<String> tables, Predicate pred, List<List<String>> sortFields,
+         List<List<String>> groupFields) {
+      this.fields = fields;
+      this.tables = tables;
+      this.pred = pred;
+      this.sortFields = sortFields;
+      this.groupFields = groupFields;
    }
 
    /**
@@ -47,6 +60,51 @@ public class QueryData {
     */
    public List<List<String>> sortFields() {
       return sortFields;
+   }
+
+   /**
+    * Returns the group fields mentioned in the select clause.
+    * 
+    * @return a list of group field names
+    */
+   public List<String> groupFields() {
+      List<String> groupFieldsResult = new ArrayList<>();
+      for (List<String> groupField : groupFields) {
+         groupFieldsResult.add(groupField.get(1));
+      }
+
+      return groupFieldsResult;
+   }
+
+   /**
+    * Returns the aggregate functions for each group field.
+    * 
+    * @return a list of aggregate functions
+    */
+   public List<AggregationFn> aggFns() {
+      List<AggregationFn> aggFnsRes = new ArrayList<>();
+      for (List<String> groupField : groupFields) {
+         String aggFnName = groupField.get(0);
+         String col = groupField.get(1);
+         if (aggFnName.equals("sum")) {
+            AggregationFn aggFn = new SumFn(col);
+            aggFnsRes.add(aggFn);
+         } else if (aggFnName.equals("count")) {
+            AggregationFn aggFn = new CountFn(col);
+            aggFnsRes.add(aggFn);
+         } else if (aggFnName.equals("avg")) {
+            AggregationFn aggFn = new AvgFn(col);
+            aggFnsRes.add(aggFn);
+         } else if (aggFnName.equals("min")) {
+            AggregationFn aggFn = new MinFn(col);
+            aggFnsRes.add(aggFn);
+         } else if (aggFnName.equals("max")) {
+            AggregationFn aggFn = new MaxFn(col);
+            aggFnsRes.add(aggFn);
+         }
+      }
+
+      return aggFnsRes;
    }
 
    /**
