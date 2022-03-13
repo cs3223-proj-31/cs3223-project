@@ -41,7 +41,7 @@ public class DistinctScan implements Scan {
       TempTable currenttemp = new TempTable(tx, sch);
       temps.add(currenttemp);
       UpdateScan currentscan = currenttemp.open();
-      while (copy(src, currentscan))
+      while (copy(src, currentscan)){
          if (comp.compare(src, currentscan) < 0) {
             // start a new run
             currentscan.close();
@@ -49,6 +49,11 @@ public class DistinctScan implements Scan {
             temps.add(currenttemp);
             currentscan = (UpdateScan) currenttemp.open();
          }
+         if (comp.compare(src, currentscan) == 0) {
+            boolean skip = src.next();
+            if(!skip) break;
+         }
+      }
       currentscan.close();
       return temps;
    }
