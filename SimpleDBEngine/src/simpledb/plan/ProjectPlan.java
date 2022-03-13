@@ -22,6 +22,14 @@ public class ProjectPlan implements Plan {
     * @param p the subquery
     * @param fieldlist the list of fields
     */
+   public ProjectPlan(Plan p, List<String> fieldlist) {
+      this.p = p;
+      for (String fldname : fieldlist)
+         schema.add(fldname, p.schema());
+      this.distinct = false;
+   }
+
+
    public ProjectPlan(Plan p, List<String> fieldlist, boolean distinct, Transaction tx) {
       this.p = p;
       for (String fldname : fieldlist)
