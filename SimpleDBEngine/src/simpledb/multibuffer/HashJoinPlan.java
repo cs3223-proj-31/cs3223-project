@@ -40,19 +40,19 @@ public class HashJoinPlan implements Plan {
 		// Partition each of the two tables into as many partitions as
 		// possible.
 		int k = tx.availableBuffs() - 1;
-		TempTable[] tts1 = new TempTable[k];
-		TempTable[] tts2 = new TempTable[k];
-		hashDistributeRecords(lhs, tts1);
-		hashDistributeRecords(rhs, tts2);
+		TempTable[] lhstts = new TempTable[k];
+		TempTable[] rhstts = new TempTable[k];
+		hashDistributeRecords(lhs, lhstts);
+		hashDistributeRecords(rhs, rhstts);
 		
 		// Recursively hashjoin if at least one partition cannot fit into
 		// memory.
 		if (doesBigPartExist) {
-			TablePlan lhstp = new TablePlan(tx, tts1[0].tableName(), md);
-			TablePlan rhstp = new TablePlan(tx, tts2[0].tableName(), md);
+			TablePlan lhstp = new TablePlan(tx, lhstts[0].tableName(), md);
+			TablePlan rhstp = new TablePlan(tx, rhstts[0].tableName(), md);
 			HashJoinPlan recursiveplan = new HashJoinPlan(tx, lhstp, rhstp, joinfield, md);
 			
-			for (int i = 1; i < tts1.length; i++) {
+			for (int i = 1; i < lhstts.length; i++) {
 				// TODO try to use a plan that just scans through two tables
 				// w/o partitioning.
 				recursiveplan = new HashJoinPlan(
@@ -60,8 +60,8 @@ public class HashJoinPlan implements Plan {
 									recursiveplan,
 									new HashJoinPlan(
 											tx,
-											new TablePlan(tx, tts1[i].tableName(), md),
-											new TablePlan(tx, tts1[i].tableName(), md),
+											new TablePlan(tx, lhstts[i].tableName(), md),
+											new TablePlan(tx, rhstts[i].tableName(), md),
 											joinfield,
 											md
 									),
@@ -76,8 +76,8 @@ public class HashJoinPlan implements Plan {
 			Scan[] ss2 = new Scan[k];
 			
 			for (int i = 0; i < k; i++) {
-				ss1[i] = tts1[i].open();
-				ss2[i] = tts2[i].open();
+				ss1[i] = lhstts[i].open();
+				ss2[i] = rhstts[i].open();
 			}
 			
 			return new HashJoinScan(ss1, ss2, joinfield, tx, lhs.schema());
