@@ -1,68 +1,133 @@
 package simpledb.multibuffer;
 
+import java.util.HashMap;
+import simpledb.materialize.TempTable;
 import simpledb.query.Constant;
 import simpledb.query.Scan;
+import simpledb.query.UpdateScan;
+import simpledb.record.Schema;
+import simpledb.tx.Transaction;
 
 public class HashJoinScan implements Scan {
-	private Scan[] subscans;
-	private Scan currentscan;
-	private int currentscanidx;
+	private Scan[] lhsscans, rhsscans;
+	private String joinfield;
+	private Transaction tx;
+	private Schema lhssch;
 	
-	public HashJoinScan(Scan[] subscans) {
-		this.subscans = subscans;
+	private int scanpairidx;
+	private Scan lhscurscan, rhscurscan, tempscan;
+	private HashMap<Constant, UpdateScan> ht;
+	
+	public HashJoinScan(Scan[] lhsscans, Scan[] rhsscans, String joinfield, Transaction tx, Schema lhssch) {
+		this.lhsscans = lhsscans;
+		this.rhsscans = rhsscans;
+		this.joinfield = joinfield;
+		this.tx = tx;
+		this.lhssch = lhssch;
 		beforeFirst();
 	}
 
 	@Override
 	public void beforeFirst() {
-		// TODO Auto-generated method stub
-		currentscanidx = 0;
-		currentscan = subscans[currentscanidx];
-		currentscan.beforeFirst();
+		scanpairidx = 0;
+		lhscurscan = lhsscans[scanpairidx];
+		rhscurscan = rhsscans[scanpairidx];
+		buildHashTableOnLhsPartScan();
 	}
-
+	
+	public void buildHashTableOnLhsPartScan() {
+		ht.clear();
+		lhscurscan.beforeFirst();
+		while (lhscurscan.next()) {
+			Constant joinfieldval = lhscurscan.getVal(joinfield);
+			ht.putIfAbsent(joinfieldval, new TempTable(tx, lhssch).open());
+			UpdateScan mapscan = ht.get(joinfieldval);
+			
+			// Copy record of lhscurscan to tempscan.
+			for (String fldname : lhssch.fields()) {
+				mapscan.setVal(fldname, lhscurscan.getVal(fldname));
+			}
+			mapscan.insert();
+		}
+		
+		// Reset pointers to point at the first record.
+		for (Constant key : ht.keySet()) {
+			ht.get(key).beforeFirst();
+		}
+	}
+	
 	@Override
 	public boolean next() {
-		while (!currentscan.next()) {
-			currentscan.close();
-			currentscanidx++;
-			if (currentscanidx >= subscans.length)
-				return false;
-			currentscan = subscans[currentscanidx];
-			currentscan.beforeFirst();
+		while (tempscan == null || !tempscan.next()) {
+			while (!rhscurscan.next()) {
+				scanpairidx++;
+				// Assume lhsscans.length == rhsscans.length
+				if (scanpairidx >= lhsscans.length) {
+					return false;
+				}
+				
+				lhscurscan = lhsscans[scanpairidx];
+				rhscurscan = rhsscans[scanpairidx];
+				buildHashTableOnLhsPartScan();
+				
+				rhscurscan.beforeFirst();
+			}
+			
+			// Get the tempscan from the hash table.
+			Constant joinfieldval = rhscurscan.getVal(joinfield);
+			tempscan = ht.get(joinfieldval);
+			tempscan.beforeFirst();
 		}
+		
 		return true;
 	}
 
 	@Override
 	public int getInt(String fldname) {
-		// TODO Auto-generated method stub
-		return currentscan.getInt(fldname);
+		if (tempscan.hasField(fldname)) {
+			return tempscan.getInt(fldname);
+		}
+		
+		return rhscurscan.getInt(fldname);
 	}
 
 	@Override
 	public String getString(String fldname) {
-		// TODO Auto-generated method stub
-		return currentscan.getString(fldname);
+		if (tempscan.hasField(fldname)) {
+			return tempscan.getString(fldname);
+		}
+		
+		return rhscurscan.getString(fldname);
 	}
 
 	@Override
 	public Constant getVal(String fldname) {
-		// TODO Auto-generated method stub
-		return currentscan.getVal(fldname);
+		if (tempscan.hasField(fldname)) {
+			return tempscan.getVal(fldname);
+		}
+		
+		return rhscurscan.getVal(fldname);
 	}
 
 	@Override
 	public boolean hasField(String fldname) {
-		// TODO Auto-generated method stub
-		return currentscan.hasField(fldname);
+		return tempscan.hasField(fldname) || rhscurscan.hasField(fldname);
 	}
 
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
-		for (int i = currentscanidx; i < subscans.length; i++)
-			subscans[i].close();
+		// Should cover tempscan.
+		for (Constant key : ht.keySet()) {
+			ht.get(key).close();
+		}
+		
+		ht.clear();
+		
+		// Should cover lhscurscan and rhscurscan.
+		for (int i = 0; i < lhsscans.length; i++) {
+			lhsscans[i].close();
+			rhsscans[i].close();
+		}
 	}
 
 }
