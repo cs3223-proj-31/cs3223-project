@@ -118,7 +118,7 @@ public class HashJoinPlan implements Plan {
 		int h, k = tts.length;
 		Constant joinfldval;
 		UpdateScan[] uss = new UpdateScan[k];
-		int[] numrecspertable = new int[k];
+		int[] numrecspertable = new int[k];  // Number of records per table.
 		
 		// Open a scan for k temp tables.
 		for (int i = 0; i < k; i++) {
@@ -139,6 +139,7 @@ public class HashJoinPlan implements Plan {
 				uss[h].setVal(fldname, scan.getVal(fldname));
 			}
 			
+			// Big (size > k) partition check.
 			numrecspertable[h]++;
 			if (numrecspertable[h] > k) {
 				doesBigPartExist = true;
