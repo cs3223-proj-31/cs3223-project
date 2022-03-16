@@ -45,8 +45,9 @@ public class BasicQueryPlanner implements QueryPlanner {
       p = new SelectPlan(p, data.pred());
 
       // Step 4: Group by stated field names
-      if (data.groupFields() != null) {
-         p = new GroupByPlan(tx, p, data.groupFields(), data.aggFns());
+      if (data.groupByFields() != null) {
+         List<String> grpByFields = data.groupByFields();
+         p = new GroupByPlan(tx, p, grpByFields, data.aggFns());
       }
 
       // Step 5: Project on the field names

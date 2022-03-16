@@ -3,7 +3,6 @@ package simpledb.parse;
 import java.util.*;
 
 import simpledb.materialize.*;
-import simpledb.materialize.SumFn;
 
 import simpledb.query.*;
 
@@ -17,31 +16,38 @@ public class QueryData {
    private Collection<String> tables;
    private Predicate pred;
    private List<List<String>> sortFields;
-   private List<List<String>> groupFields;
+   private List<String> groupByfields;
+   private List<AggregationFn> aggFns;
+   private List<String> allFields;
 
    /**
     * Saves the field and table list and predicate.
     */
-   public QueryData(List<String> fields, Collection<String> tables, Predicate pred) {
-      this.fields = fields;
-      this.tables = tables;
-      this.pred = pred;
-   }
+   // public QueryData(List<String> fields, Collection<String> tables, Predicate
+   // pred) {
+   // this.fields = fields;
+   // this.tables = tables;
+   // this.pred = pred;
+   // }
 
-   public QueryData(List<String> fields, Collection<String> tables, Predicate pred, List<List<String>> sortFields) {
-      this.fields = fields;
-      this.tables = tables;
-      this.pred = pred;
-      this.sortFields = sortFields;
-   }
+   // public QueryData(List<String> fields, Collection<String> tables, Predicate
+   // pred, List<List<String>> sortFields) {
+   // this.fields = fields;
+   // this.tables = tables;
+   // this.pred = pred;
+   // this.sortFields = sortFields;
+   // }
 
    public QueryData(List<String> fields, Collection<String> tables, Predicate pred, List<List<String>> sortFields,
-         List<List<String>> groupFields) {
-      this.fields = fields;
+         List<String> groupByfields) {
+      setFields(fields);
       this.tables = tables;
       this.pred = pred;
       this.sortFields = sortFields;
-      this.groupFields = groupFields;
+      this.groupByfields = groupByfields;
+
+      // System.out.println("QUERYDATA CREATED");
+      // System.out.println("DATA:" + this.fields.toString());
    }
 
    /**
@@ -51,6 +57,16 @@ public class QueryData {
     */
    public List<String> fields() {
       return fields;
+   }
+
+   /**
+    * Returns the fields mentioned in the select clause (includes aggregated
+    * fields).
+    * 
+    * @return a list of field names
+    */
+   public List<String> allFields() {
+      return allFields;
    }
 
    /**
@@ -67,13 +83,17 @@ public class QueryData {
     * 
     * @return a list of group field names
     */
-   public List<String> groupFields() {
-      List<String> groupFieldsResult = new ArrayList<>();
-      for (List<String> groupField : groupFields) {
-         groupFieldsResult.add(groupField.get(1));
-      }
+   public List<String> groupByFields() {
+      return groupByfields;
+   }
 
-      return groupFieldsResult;
+   /**
+    * Returns the aggregate functions.
+    * 
+    * @return a list of agrgegate functions
+    */
+   public List<AggregationFn> aggFns() {
+      return aggFns;
    }
 
    /**
@@ -81,30 +101,58 @@ public class QueryData {
     * 
     * @return a list of aggregate functions
     */
-   public List<AggregationFn> aggFns() {
+   public void setFields(List<String> fields) {
+      // System.out.println("IN SET FIELDS: RUNNING");
+
       List<AggregationFn> aggFnsRes = new ArrayList<>();
-      for (List<String> groupField : groupFields) {
-         String aggFnName = groupField.get(0);
-         String col = groupField.get(1);
-         if (aggFnName.equals("sum")) {
+      // List<String> normalFields = new ArrayList<>();
+      // allFields = fields;
+
+      for (String field : fields) {
+         // System.out.println("IN SET FIELDS: " + field);
+
+         if (field.startsWith("sum")) {
+            // System.out.println("SUM DETECTED: " + field);
+
+            String col = field.substring(5, field.length());
+            // System.out.println("COL: " + col);
+            // normalFields.add(col);
+
             AggregationFn aggFn = new SumFn(col);
             aggFnsRes.add(aggFn);
-         } else if (aggFnName.equals("count")) {
+         } else if (field.startsWith("count")) {
+            String col = field.substring(7, field.length());
+            // normalFields.add(col);
+
             AggregationFn aggFn = new CountFn(col);
             aggFnsRes.add(aggFn);
-         } else if (aggFnName.equals("avg")) {
+         } else if (field.startsWith("avg")) {
+            String col = field.substring(5, field.length());
+            // normalFields.add(col);
+
             AggregationFn aggFn = new AvgFn(col);
             aggFnsRes.add(aggFn);
-         } else if (aggFnName.equals("min")) {
+         } else if (field.startsWith("min")) {
+            String col = field.substring(5, field.length());
+            // normalFields.add(col);
+
             AggregationFn aggFn = new MinFn(col);
             aggFnsRes.add(aggFn);
-         } else if (aggFnName.equals("max")) {
+         } else if (field.startsWith("max")) {
+            String col = field.substring(5, field.length());
+            // normalFields.add(col);
+
             AggregationFn aggFn = new MaxFn(col);
             aggFnsRes.add(aggFn);
+         } else {
+            // Is a normal field (no aggregation functions applied)
+            // normalFields.add(field);
          }
       }
 
-      return aggFnsRes;
+      aggFns = aggFnsRes;
+      this.fields = fields;
+      // this.fields = normalFields;
    }
 
    /**

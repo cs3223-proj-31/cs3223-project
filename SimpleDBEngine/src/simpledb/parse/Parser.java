@@ -19,25 +19,46 @@ public class Parser {
 
    // Methods for parsing predicates, terms, expressions, constants, and fields
    public String field() {
-      if (lex.matchKeyword("sum")) {
-         lex.eatKeyword("sum");
-         lex.eatDelim('(');
-         String field = lex.eatId();
-         lex.eatDelim(')');
+      // if (lex.matchKeyword("sum")) {
+      // lex.eatKeyword("sum");
+      // lex.eatDelim('(');
+      // String field = "sumof" + lex.eatId();
+      // lex.eatDelim(')');
 
-      } else if (lex.matchKeyword("count")) {
-         lex.eatKeyword("count");
-      } else if (lex.matchKeyword("avg")) {
-         lex.eatKeyword("avg");
-      } else if (lex.matchKeyword("min")) {
-         lex.eatKeyword("min");
-      } else if (lex.matchKeyword("max")) {
-         lex.eatKeyword("max");
-      } else {
-         String field = lex.eatId();
-      }
+      // return field;
+      // } else if (lex.matchKeyword("count")) {
+      // lex.eatKeyword("count");
+      // lex.eatDelim('(');
+      // String field = "countof" + lex.eatId();
+      // lex.eatDelim(')');
 
-      return lex.eatId();
+      // return field;
+      // } else if (lex.matchKeyword("avg")) {
+      // lex.eatKeyword("avg");
+      // lex.eatDelim('(');
+      // String field = "avgof" + lex.eatId();
+      // lex.eatDelim(')');
+
+      // return field;
+      // } else if (lex.matchKeyword("min")) {
+      // lex.eatKeyword("min");
+      // lex.eatDelim('(');
+      // String field = "minof" + lex.eatId();
+      // lex.eatDelim(')');
+
+      // return field;
+      // } else if (lex.matchKeyword("max")) {
+      // lex.eatKeyword("max");
+      // lex.eatDelim('(');
+      // String field = "maxof" + lex.eatId();
+      // lex.eatDelim(')');
+
+      // return field;
+      // } else {
+      String field = lex.eatId();
+
+      return field;
+      // }
    }
 
    public Constant constant() {
