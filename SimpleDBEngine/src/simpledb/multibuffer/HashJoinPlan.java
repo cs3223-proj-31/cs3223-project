@@ -96,7 +96,7 @@ public class HashJoinPlan implements Plan {
 	@Override
 	public Schema schema() {
 		// TODO Auto-generated method stub
-		return null;
+		return schema;
 	}
 	
 	private int hashWithinK(int k, Constant val) {
