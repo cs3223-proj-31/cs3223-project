@@ -2,9 +2,7 @@ package simpledb.multibuffer;
 
 import simpledb.tx.Transaction;
 import simpledb.materialize.TempTable;
-import simpledb.metadata.MetadataMgr;
 import simpledb.plan.Plan;
-import simpledb.plan.TablePlan;
 import simpledb.query.Scan;
 import simpledb.query.UpdateScan;
 import simpledb.query.Constant;
@@ -20,19 +18,15 @@ public class HashJoinPlan implements Plan {
 	private Transaction tx;
 	private Plan lhs, rhs;  // p1 corresponds to T1; similar for p2 and T2.
 	private String joinfield;
-	private MetadataMgr md;
 	private Schema schema = new Schema();
-	private boolean doesBigPartExist;
 	
-	public HashJoinPlan(Transaction tx, Plan lhs, Plan rhs, String joinfield, MetadataMgr md) {
+	public HashJoinPlan(Transaction tx, Plan lhs, Plan rhs, String joinfield) {
 		this.tx = tx;
 		this.lhs = lhs;
 		this.rhs = rhs;
 		this.joinfield = joinfield;
-		this.md = md;
 		schema.addAll(lhs.schema());
 		schema.addAll(rhs.schema());
-		doesBigPartExist = false;
 	}
 
 	@Override
@@ -45,43 +39,15 @@ public class HashJoinPlan implements Plan {
 		hashDistributeRecords(lhs, lhstts);
 		hashDistributeRecords(rhs, rhstts);
 		
-		// Recursively hashjoin if at least one partition cannot fit into
-		// memory.
-		if (doesBigPartExist) {
-			TablePlan lhstp = new TablePlan(tx, lhstts[0].tableName(), md);
-			TablePlan rhstp = new TablePlan(tx, rhstts[0].tableName(), md);
-			HashJoinPlan recursiveplan = new HashJoinPlan(tx, lhstp, rhstp, joinfield, md);
-			
-			for (int i = 1; i < lhstts.length; i++) {
-				// TODO try to use a plan that just scans through two tables
-				// w/o partitioning.
-				recursiveplan = new HashJoinPlan(
-									tx,
-									recursiveplan,
-									new HashJoinPlan(
-											tx,
-											new TablePlan(tx, lhstts[i].tableName(), md),
-											new TablePlan(tx, rhstts[i].tableName(), md),
-											joinfield,
-											md
-									),
-									joinfield,
-									md
-								);
-			}
-			
-			return recursiveplan.open();
-		} else {
-			Scan[] ss1 = new Scan[k];
-			Scan[] ss2 = new Scan[k];
-			
-			for (int i = 0; i < k; i++) {
-				ss1[i] = lhstts[i].open();
-				ss2[i] = rhstts[i].open();
-			}
-			
-			return new HashJoinScan(ss1, ss2, joinfield, tx, lhs.schema());
+		Scan[] ss1 = new Scan[k];
+		Scan[] ss2 = new Scan[k];
+		
+		for (int i = 0; i < k; i++) {
+			ss1[i] = lhstts[i].open();
+			ss2[i] = rhstts[i].open();
 		}
+		
+		return new HashJoinScan(ss1, ss2, joinfield, tx, lhs.schema());
 	}
 
 	@Override
@@ -118,7 +84,6 @@ public class HashJoinPlan implements Plan {
 		int h, k = tts.length;
 		Constant joinfldval;
 		UpdateScan[] uss = new UpdateScan[k];
-		int[] numrecspertable = new int[k];  // Number of records per table.
 		
 		// Open a scan for k temp tables.
 		for (int i = 0; i < k; i++) {
@@ -137,12 +102,6 @@ public class HashJoinPlan implements Plan {
 			uss[h].insert();
 			for (String fldname : sch.fields()) {
 				uss[h].setVal(fldname, scan.getVal(fldname));
-			}
-			
-			// Big (size > k) partition check.
-			numrecspertable[h]++;
-			if (numrecspertable[h] > k) {
-				doesBigPartExist = true;
 			}
 		}
 		
