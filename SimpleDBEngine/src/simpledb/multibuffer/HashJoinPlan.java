@@ -17,14 +17,15 @@ import simpledb.record.Schema;
 public class HashJoinPlan implements Plan {
 	private Transaction tx;
 	private Plan lhs, rhs;  // p1 corresponds to T1; similar for p2 and T2.
-	private String joinfield;
+	private String lhsjoinfld, rhsjoinfld;
 	private Schema schema = new Schema();
 	
-	public HashJoinPlan(Transaction tx, Plan lhs, Plan rhs, String joinfield) {
+	public HashJoinPlan(Transaction tx, Plan lhs, Plan rhs, String lhsjoinfld, String rhsjoinfld) {
 		this.tx = tx;
 		this.lhs = lhs;
 		this.rhs = rhs;
-		this.joinfield = joinfield;
+		this.lhsjoinfld = lhsjoinfld;
+		this.rhsjoinfld = rhsjoinfld;
 		schema.addAll(lhs.schema());
 		schema.addAll(rhs.schema());
 	}
@@ -47,7 +48,7 @@ public class HashJoinPlan implements Plan {
 			ss2[i] = rhstts[i].open();
 		}
 		
-		return new HashJoinScan(ss1, ss2, joinfield, tx, lhs.schema());
+		return new HashJoinScan(ss1, ss2, lhsjoinfld, rhsjoinfld, tx, lhs.schema());
 	}
 
 	@Override
@@ -57,8 +58,8 @@ public class HashJoinPlan implements Plan {
 
 	@Override
 	public int recordsOutput() {
-	      int maxvals = Math.max(lhs.distinctValues(joinfield),
-	    		  		rhs.distinctValues(joinfield));
+	      int maxvals = Math.max(lhs.distinctValues(lhsjoinfld),
+	    		  		rhs.distinctValues(rhsjoinfld));
 	      return (lhs.recordsOutput() * rhs.recordsOutput()) / maxvals;
 	}
 
@@ -92,10 +93,13 @@ public class HashJoinPlan implements Plan {
 		
 		Scan scan = p.open();
 		Schema sch = p.schema();
+		String joinfld = sch.hasField(lhsjoinfld)
+						 	? lhsjoinfld
+						 	: rhsjoinfld;
 		
 		// For each record of p...
 		while (scan.next()) {
-			joinfldval = scan.getVal(joinfield);
+			joinfldval = scan.getVal(joinfld);
 			// ...hash the record's join field to get h...
 			h = hashWithinK(k, joinfldval);
 			// ...and copy the record to the h-th temp table.

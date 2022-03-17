@@ -10,7 +10,7 @@ import simpledb.tx.Transaction;
 
 public class HashJoinScan implements Scan {
 	private Scan[] lhsscans, rhsscans;
-	private String joinfield;
+	private String lhsjoinfld, rhsjoinfld;
 	private Transaction tx;
 	private Schema lhssch;
 	
@@ -18,10 +18,11 @@ public class HashJoinScan implements Scan {
 	private Scan lhscurscan, rhscurscan, tempscan;
 	private HashMap<Constant, UpdateScan> ht;
 	
-	public HashJoinScan(Scan[] lhsscans, Scan[] rhsscans, String joinfield, Transaction tx, Schema lhssch) {
+	public HashJoinScan(Scan[] lhsscans, Scan[] rhsscans, String lhsjoinfld, String rhsjoinfld, Transaction tx, Schema lhssch) {
 		this.lhsscans = lhsscans;
 		this.rhsscans = rhsscans;
-		this.joinfield = joinfield;
+		this.lhsjoinfld = lhsjoinfld;
+		this.rhsjoinfld = rhsjoinfld;
 		this.tx = tx;
 		this.lhssch = lhssch;
 		beforeFirst();
@@ -39,7 +40,7 @@ public class HashJoinScan implements Scan {
 		ht.clear();
 		lhscurscan.beforeFirst();
 		while (lhscurscan.next()) {
-			Constant joinfieldval = lhscurscan.getVal(joinfield);
+			Constant joinfieldval = lhscurscan.getVal(lhsjoinfld);
 			ht.putIfAbsent(joinfieldval, new TempTable(tx, lhssch).open());
 			UpdateScan mapscan = ht.get(joinfieldval);
 			
@@ -74,7 +75,7 @@ public class HashJoinScan implements Scan {
 			}
 			
 			// Get the tempscan from the hash table.
-			Constant joinfieldval = rhscurscan.getVal(joinfield);
+			Constant joinfieldval = rhscurscan.getVal(rhsjoinfld);
 			tempscan = ht.get(joinfieldval);
 			tempscan.beforeFirst();
 		}
