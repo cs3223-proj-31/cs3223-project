@@ -71,6 +71,11 @@ public class HashJoinPlan implements Plan {
 		return schema;
 	}
 	
+	@Override
+	public String toString() {
+		return "(" + lhs.toString() + " hash join " + rhs.toString() + ")";
+	}
+	
 	private void initTempTableArray(TempTable[] tts, Schema sch) {
 		for (int i = 0; i < tts.length; i++) {
 			tts[i] = new TempTable(tx, sch);
