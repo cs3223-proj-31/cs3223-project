@@ -7,6 +7,7 @@ import simpledb.query.*;
 import simpledb.metadata.*;
 import simpledb.index.planner.*;
 import simpledb.materialize.MergeJoinPlan;
+import simpledb.multibuffer.HashJoinPlan;
 import simpledb.multibuffer.MultibufferProductPlan;
 import simpledb.plan.*;
 
@@ -77,6 +78,11 @@ class TablePlanner {
          System.out.println("merge preferred");
          p = mergeJoin;
       }
+      Plan hashJoin = makeHashJoin(current, currsch);
+      if (p == null || hashJoin != null && p.blocksAccessed() > hashJoin.blocksAccessed()) {
+    	  System.out.println("hashjoin preferred");
+    	  p = hashJoin;
+      }
       return p;
    }
    
@@ -131,6 +137,18 @@ class TablePlanner {
    private Plan makeProductJoin(Plan current, Schema currsch) {
       Plan p = makeProductPlan(current);
       return addJoinPred(p, currsch);
+   }
+   
+   private Plan makeHashJoin(Plan current, Schema currsch) {
+	   for (String fldname : myschema.fields()) {
+	         String outerfield = mypred.equatesWithField(fldname);
+	         if (outerfield != null && currsch.hasField(outerfield)) {
+	            Plan p = new HashJoinPlan(tx, myplan, current, fldname, outerfield);
+	            p = addSelectPred(p);
+	            return addJoinPred(p, currsch);
+	         }
+	      }
+	      return null;
    }
    
    private Plan addSelectPred(Plan p) {
