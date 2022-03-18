@@ -58,10 +58,10 @@ public class SimpleDB {
       }
       mdm = new MetadataMgr(isnew, tx);
       // Note: For testing aggregation
-      QueryPlanner qp = new BasicQueryPlanner(mdm);
-      UpdatePlanner up = new BasicUpdatePlanner(mdm);
-      // QueryPlanner qp = new HeuristicQueryPlanner(mdm);
-      // UpdatePlanner up = new IndexUpdatePlanner(mdm);
+      // QueryPlanner qp = new BasicQueryPlanner(mdm);
+      // UpdatePlanner up = new BasicUpdatePlanner(mdm);
+      QueryPlanner qp = new HeuristicQueryPlanner(mdm);
+      UpdatePlanner up = new IndexUpdatePlanner(mdm);
       planner = new Planner(qp, up);
       tx.commit();
    }
