@@ -76,4 +76,9 @@ public class IndexSelectPlan implements Plan {
    public Schema schema() {
       return p.schema(); 
    }
+   
+   @Override
+   public String toString() {
+	   return "indexselect (" + val.toString() + ") [" + p.toString() + "]"; 
+   }
 }
