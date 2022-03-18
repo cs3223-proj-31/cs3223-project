@@ -59,7 +59,7 @@ public class SortPlan implements Plan {
     * Return the number of blocks in the sorted table,
     * which is the same as it would be in a
     * materialized table.
-    * It does <i>not</i> include the one-time cost
+    * It <i>does</i> include the one-time cost
     * of materializing and sorting the records.
     * 
     * @see simpledb.plan.Plan#blocksAccessed()
@@ -67,9 +67,10 @@ public class SortPlan implements Plan {
    public int blocksAccessed() {
       // does not include the one-time cost of sorting
       Plan mp = new MaterializePlan(tx, p); // not opened; just for analysis
-      return mp.blocksAccessed();
+      int R = mp.blocksAccessed();
+      int cost = 2 * R * (1 + (int)Math.ceil(Math.log(R/2)/Math.log(2)));
+      return cost;
    }
-
    /**
     * Return the number of records in the sorted table,
     * which is the same as in the underlying query.

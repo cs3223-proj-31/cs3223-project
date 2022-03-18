@@ -74,7 +74,6 @@ public class IndexInfo {
     	  return BTreeIndex.searchCost(numblocks, rpb);
       else
     	  return HashIndex.searchCost(numblocks, rpb);
-//    return BTreeIndex.searchCost(numblocks, rpb);
    }
    
    /**

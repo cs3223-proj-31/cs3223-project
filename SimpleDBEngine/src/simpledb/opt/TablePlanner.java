@@ -72,7 +72,7 @@ class TablePlanner {
       Plan blockJoin = makeBlockNestedJoin(current, currsch);
       if (p == null || p.blocksAccessed() > blockJoin.blocksAccessed()){
          System.out.println("nested preferred");
-         p = makeProductJoin(current, currsch);
+         p = blockJoin;
       }
       Plan mergeJoin = makeMergeJoin(current, currsch);
       if (p == null || mergeJoin != null && p.blocksAccessed() > mergeJoin.blocksAccessed()) {

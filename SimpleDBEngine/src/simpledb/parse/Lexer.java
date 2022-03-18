@@ -142,13 +142,15 @@ public class Lexer {
     * @param w the keyword string
     */
    public void eatKeyword(String w) {
-      if (!matchKeyword(w))
+      if (!matchKeyword(w)) {
+    	  System.out.println(w);
          throw new BadSyntaxException();
+      }
       nextToken();
    }
 
    public boolean eatDistinct() {
-      if(!matchKeyword("distinct")) {
+      if(matchKeyword("distinct")) {
          nextToken();
          return true;
       }
