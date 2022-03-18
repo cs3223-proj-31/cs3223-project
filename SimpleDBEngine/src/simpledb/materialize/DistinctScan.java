@@ -25,8 +25,8 @@ public class DistinctScan implements Scan {
    public DistinctScan(Scan src, Schema schema, Transaction tx) {
       this.sch = schema;
       comp = new RecordComparator(schema.fields());
-      List<TempTable> runs = splitIntoRuns(src);
       this.tx = tx;
+      List<TempTable> runs = splitIntoRuns(src);
       src.close();
       while (runs.size() > 1)
          runs = doAMergeIteration(runs);
@@ -49,7 +49,7 @@ public class DistinctScan implements Scan {
             temps.add(currenttemp);
             currentscan = (UpdateScan) currenttemp.open();
          }
-         if (comp.compare(src, currentscan) == 0) {
+         else if (comp.compare(src, currentscan) == 0) {
             boolean skip = src.next();
             if(!skip) break;
          }

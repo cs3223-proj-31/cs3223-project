@@ -30,14 +30,16 @@ public class DistinctScanTest {
     // query for distinct col
 	DistinctScan ds = new DistinctScan(s, sch, tx);
     while (ds.next()) {
-			System.out.println(s.getVal("MajorId"));
+			System.out.println(ds.getVal("majorid"));
 		}
     
     // query for distinct pair of columns
-    sch.add("GradYear", studentplan.schema());
+    sch.add("gradyear", studentplan.schema());
+    ds.close();
+    s = studentplan.open();
     DistinctScan ds2 = new DistinctScan(s, sch, tx);
     while (ds2.next()) {
-			System.out.println(s.getVal("MajorId").asString() + s.getVal("GradYear").asString());
+			System.out.println(ds2.getVal("majorid").toString() + " " + ds2.getVal("gradyear"));
 		}
     tx.rollback();
   }
