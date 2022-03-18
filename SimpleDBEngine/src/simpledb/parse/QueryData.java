@@ -45,9 +45,6 @@ public class QueryData {
       this.pred = pred;
       this.sortFields = sortFields;
       this.groupByfields = groupByfields;
-
-      // System.out.println("QUERYDATA CREATED");
-      // System.out.println("DATA:" + this.fields.toString());
    }
 
    /**
@@ -102,51 +99,35 @@ public class QueryData {
     * @return a list of aggregate functions
     */
    public void setFields(List<String> fields) {
-      // System.out.println("IN SET FIELDS: RUNNING");
-
       List<AggregationFn> aggFnsRes = new ArrayList<>();
-      // List<String> normalFields = new ArrayList<>();
-      // allFields = fields;
 
       for (String field : fields) {
-         // System.out.println("IN SET FIELDS: " + field);
-
          if (field.startsWith("sum")) {
-            // System.out.println("SUM DETECTED: " + field);
-
             String col = field.substring(5, field.length());
-            // System.out.println("COL: " + col);
-            // normalFields.add(col);
 
             AggregationFn aggFn = new SumFn(col);
             aggFnsRes.add(aggFn);
          } else if (field.startsWith("count")) {
             String col = field.substring(7, field.length());
-            // normalFields.add(col);
 
             AggregationFn aggFn = new CountFn(col);
             aggFnsRes.add(aggFn);
          } else if (field.startsWith("avg")) {
             String col = field.substring(5, field.length());
-            // normalFields.add(col);
 
             AggregationFn aggFn = new AvgFn(col);
             aggFnsRes.add(aggFn);
          } else if (field.startsWith("min")) {
             String col = field.substring(5, field.length());
-            // normalFields.add(col);
 
             AggregationFn aggFn = new MinFn(col);
             aggFnsRes.add(aggFn);
          } else if (field.startsWith("max")) {
             String col = field.substring(5, field.length());
-            // normalFields.add(col);
 
             AggregationFn aggFn = new MaxFn(col);
             aggFnsRes.add(aggFn);
          } else {
-            // Is a normal field (no aggregation functions applied)
-            // normalFields.add(field);
          }
       }
 
