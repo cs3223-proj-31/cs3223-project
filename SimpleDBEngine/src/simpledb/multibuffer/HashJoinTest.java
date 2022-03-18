@@ -28,7 +28,7 @@ public class HashJoinTest {
 		
 		System.out.println("ACTUAL:");
 		while (hashjoinscan.next()) {
-			System.out.println(hashjoinscan.getInt("title"));
+			System.out.println(hashjoinscan.getString("title"));
 		}
 		hashjoinscan.close();
 		
@@ -36,7 +36,7 @@ public class HashJoinTest {
 		
 		System.out.println();
 		
-		String[] expectedtitles = {"db systems", "calculus", "elocution"};
+		String[] expectedtitles = {"calculus", "calculus", "db systems", "db systems", "elocution"};
 		
 		System.out.println("EXPECTED:");
 		for (String title : expectedtitles) {
