@@ -18,9 +18,47 @@ public class Parser {
    }
 
    // Methods for parsing predicates, terms, expressions, constants, and fields
-
    public String field() {
-      return lex.eatId();
+      // if (lex.matchKeyword("sum")) {
+      // lex.eatKeyword("sum");
+      // lex.eatDelim('(');
+      // String field = "sumof" + lex.eatId();
+      // lex.eatDelim(')');
+
+      // return field;
+      // } else if (lex.matchKeyword("count")) {
+      // lex.eatKeyword("count");
+      // lex.eatDelim('(');
+      // String field = "countof" + lex.eatId();
+      // lex.eatDelim(')');
+
+      // return field;
+      // } else if (lex.matchKeyword("avg")) {
+      // lex.eatKeyword("avg");
+      // lex.eatDelim('(');
+      // String field = "avgof" + lex.eatId();
+      // lex.eatDelim(')');
+
+      // return field;
+      // } else if (lex.matchKeyword("min")) {
+      // lex.eatKeyword("min");
+      // lex.eatDelim('(');
+      // String field = "minof" + lex.eatId();
+      // lex.eatDelim(')');
+
+      // return field;
+      // } else if (lex.matchKeyword("max")) {
+      // lex.eatKeyword("max");
+      // lex.eatDelim('(');
+      // String field = "maxof" + lex.eatId();
+      // lex.eatDelim(')');
+
+      // return field;
+      // } else {
+      String field = lex.eatId();
+
+      return field;
+      // }
    }
 
    public Constant constant() {
@@ -69,15 +107,21 @@ public class Parser {
          pred = predicate();
       }
 
+      List<String> groupByFields = null;
+      if (lex.matchKeyword("group")) {
+         lex.eatKeyword("group");
+         lex.eatKeyword("by");
+         groupByFields = groupByFieldsList();
+      }
+
+      List<List<String>> sortFields = null;
       if (lex.matchKeyword("order")) {
          lex.eatKeyword("order");
          lex.eatKeyword("by");
-         List<List<String>> sortFields = sortFieldsList();
-
-         return new QueryData(fields, tables, pred, sortFields);
+         sortFields = sortFieldsList();
       }
 
-      return new QueryData(fields, tables, pred);
+      return new QueryData(fields, tables, pred, sortFields, groupByFields);
    }
 
    private List<String> selectList() {
@@ -295,6 +339,17 @@ public class Parser {
          L.addAll(sortFieldsList());
       }
 
+      return L;
+   }
+
+   // Method for parsing group by fields
+   private List<String> groupByFieldsList() {
+      List<String> L = new ArrayList<String>();
+      L.add(field());
+      if (lex.matchDelim(',')) {
+         lex.eatDelim(',');
+         L.addAll(groupByFieldsList());
+      }
       return L;
    }
 }

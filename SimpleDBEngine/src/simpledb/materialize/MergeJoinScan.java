@@ -45,6 +45,8 @@ public class MergeJoinScan implements Scan {
    public void beforeFirst() {
       s1.beforeFirst();
       s2.beforeFirst();
+      s1.next();
+      joinval = s1.getVal(fldname1);
    }
    
    /**

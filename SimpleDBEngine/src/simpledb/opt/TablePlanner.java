@@ -8,6 +8,7 @@ import simpledb.metadata.*;
 import simpledb.index.planner.*;
 import simpledb.materialize.MergeJoinPlan;
 import simpledb.multibuffer.HashJoinPlan;
+import simpledb.multibuffer.BlockNestedJoinPlan;
 import simpledb.multibuffer.MultibufferProductPlan;
 import simpledb.plan.*;
 
@@ -68,8 +69,8 @@ class TablePlanner {
          return null;
       System.out.println("attempting index join");
       Plan p = makeIndexJoin(current, currsch);
-      Plan productJoin = makeProductJoin(current, currsch);
-      if (p == null || p.blocksAccessed() > productJoin.blocksAccessed()){
+      Plan blockJoin = makeBlockNestedJoin(current, currsch);
+      if (p == null || p.blocksAccessed() > blockJoin.blocksAccessed()){
          System.out.println("nested preferred");
          p = makeProductJoin(current, currsch);
       }
@@ -115,6 +116,18 @@ class TablePlanner {
          if (outerfield != null && currsch.hasField(outerfield)) {
             IndexInfo ii = indexes.get(fldname);
             Plan p = new IndexJoinPlan(current, myplan, ii, outerfield);
+            p = addSelectPred(p);
+            return addJoinPred(p, currsch);
+         }
+      }
+      return null;
+   }
+
+   private Plan makeBlockNestedJoin(Plan current, Schema currsch){
+      for (String fldname : indexes.keySet()) {
+         String outerfield = mypred.equatesWithField(fldname);
+         if (outerfield != null && currsch.hasField(outerfield)) {
+            Plan p = new BlockNestedJoinPlan(tx, myplan, current, fldname, outerfield);
             p = addSelectPred(p);
             return addJoinPred(p, currsch);
          }

@@ -57,6 +57,7 @@ public class SimpleDB {
          tx.recover();
       }
       mdm = new MetadataMgr(isnew, tx);
+      // Note: For testing aggregation
       // QueryPlanner qp = new BasicQueryPlanner(mdm);
       // UpdatePlanner up = new BasicUpdatePlanner(mdm);
       QueryPlanner qp = new HeuristicQueryPlanner(mdm);
