@@ -96,6 +96,6 @@ public class ProjectPlan implements Plan {
    }
 
    public String toString() {
-      return "Project: " + fieldlist.toString();
+      return "Project: " + fieldlist.toString() + " [" + p.toString() + "]";
    }
 }
