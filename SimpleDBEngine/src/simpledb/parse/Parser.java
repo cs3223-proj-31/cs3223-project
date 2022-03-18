@@ -99,6 +99,7 @@ public class Parser {
    public QueryData query() {
       lex.eatKeyword("select");
       List<String> fields = selectList();
+      boolean distinct = lex.eatDistinct();
       lex.eatKeyword("from");
       Collection<String> tables = tableList();
       Predicate pred = new Predicate();
@@ -121,7 +122,7 @@ public class Parser {
          sortFields = sortFieldsList();
       }
 
-      return new QueryData(fields, tables, pred, sortFields, groupByFields);
+      return new QueryData(fields, tables, pred, sortFields, groupByFields, distinct);
    }
 
    private List<String> selectList() {

@@ -2,6 +2,8 @@ package simpledb.plan;
 
 import java.util.List;
 import simpledb.record.Schema;
+import simpledb.tx.Transaction;
+import simpledb.materialize.DistinctScan;
 import simpledb.query.*;
 
 /**
@@ -14,6 +16,8 @@ public class ProjectPlan implements Plan {
    private Plan p;
    private Schema schema = new Schema();
    private List<String> fieldlist;
+   private boolean distinct;
+   private Transaction tx;
 
    /**
     * Creates a new project node in the query tree,
@@ -27,6 +31,16 @@ public class ProjectPlan implements Plan {
       this.fieldlist = fieldlist;
       for (String fldname : fieldlist)
          schema.add(fldname, p.schema());
+      this.distinct = false;
+   }
+
+
+   public ProjectPlan(Plan p, List<String> fieldlist, boolean distinct, Transaction tx) {
+      this.p = p;
+      for (String fldname : fieldlist)
+         schema.add(fldname, p.schema());
+      this.distinct = distinct;
+      this.tx = tx;
    }
 
    /**
@@ -36,6 +50,7 @@ public class ProjectPlan implements Plan {
     */
    public Scan open() {
       Scan s = p.open();
+      if(distinct) return new DistinctScan(new ProjectScan(s, schema.fields()), schema, tx);
       return new ProjectScan(s, schema.fields());
    }
 
