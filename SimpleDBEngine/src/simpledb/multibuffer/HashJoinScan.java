@@ -58,9 +58,9 @@ public class HashJoinScan implements Scan {
 			ht.putIfAbsent(joinfieldval, new TempTable(tx, lhssch).open());
 			UpdateScan mapscan = ht.get(joinfieldval);
 			
+			mapscan.insert();
 			// Copy record of lhscurscan to tempscan.
 			for (String fldname : lhssch.fields()) {
-				mapscan.insert();
 				mapscan.setVal(fldname, lhscurscan.getVal(fldname));
 			}
 		}
