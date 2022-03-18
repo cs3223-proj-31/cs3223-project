@@ -93,6 +93,6 @@ public class SelectPlan implements Plan {
    }
 
    public String toString() {
-      return "Select" + "( " + pred.toString() + " )";
+      return "Select" + "( " + pred.toString() + " ) [" + p.toString() + "]";
    }
 }
