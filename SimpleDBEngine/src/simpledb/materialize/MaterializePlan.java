@@ -84,4 +84,10 @@ public class MaterializePlan implements Plan {
    public Schema schema() {
       return srcplan.schema();
    }
+   
+   @Override
+   public String toString() {
+	   return "materialize (" + srcplan.toString() + ")";
+   }
+   
 }

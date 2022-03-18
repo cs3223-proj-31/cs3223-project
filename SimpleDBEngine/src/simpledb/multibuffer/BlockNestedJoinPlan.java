@@ -101,6 +101,11 @@ public class BlockNestedJoinPlan implements Plan {
    public Schema schema() {
       return schema;
    }
+   
+   @Override
+   public String toString() {
+	   return "(" + p1.toString() + " block nested join " + p2.toString() + ")";
+   }
 
    // effectively materialise.open(), but return temptable instead of scan
    // since dont need to delay with materialiseplan
