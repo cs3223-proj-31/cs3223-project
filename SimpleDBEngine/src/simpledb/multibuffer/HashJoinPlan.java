@@ -37,18 +37,12 @@ public class HashJoinPlan implements Plan {
 		int k = tx.availableBuffs() - 1;
 		TempTable[] lhstts = new TempTable[k];
 		TempTable[] rhstts = new TempTable[k];
+		initTempTableArray(lhstts, lhs.schema());
+		initTempTableArray(rhstts, rhs.schema());
 		hashDistributeRecords(lhs, lhstts);
 		hashDistributeRecords(rhs, rhstts);
 		
-		Scan[] ss1 = new Scan[k];
-		Scan[] ss2 = new Scan[k];
-		
-		for (int i = 0; i < k; i++) {
-			ss1[i] = lhstts[i].open();
-			ss2[i] = rhstts[i].open();
-		}
-		
-		return new HashJoinScan(ss1, ss2, lhsjoinfld, rhsjoinfld, tx, lhs.schema());
+		return new HashJoinScan(lhstts, rhstts, lhsjoinfld, rhsjoinfld, tx, lhs.schema());
 	}
 
 	@Override
@@ -77,8 +71,10 @@ public class HashJoinPlan implements Plan {
 		return schema;
 	}
 	
-	private int hashWithinK(int k, Constant val) {
-		return val.hashCode() % k;
+	private void initTempTableArray(TempTable[] tts, Schema sch) {
+		for (int i = 0; i < tts.length; i++) {
+			tts[i] = new TempTable(tx, sch);
+		}
 	}
 	
 	private void hashDistributeRecords(Plan p, TempTable[] tts) {
@@ -116,5 +112,9 @@ public class HashJoinPlan implements Plan {
 		
 		scan.close();
 		
+	}
+	
+	private int hashWithinK(int k, Constant val) {
+		return val.hashCode() % k;
 	}
 }
