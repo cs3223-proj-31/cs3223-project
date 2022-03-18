@@ -67,23 +67,23 @@ class TablePlanner {
       Predicate joinpred = mypred.joinSubPred(myschema, currsch);
       if (joinpred == null)
          return null;
-      System.out.println("attempting index join");
+      // System.out.println("attempting index join");
       Plan p = makeIndexJoin(current, currsch);
-      Plan blockJoin = makeBlockNestedJoin(current, currsch);
-      if (p == null || p.blocksAccessed() > blockJoin.blocksAccessed()){
-         System.out.println("nested preferred");
-         p = blockJoin;
-      }
-      Plan mergeJoin = makeMergeJoin(current, currsch);
-      if (p == null || mergeJoin != null && p.blocksAccessed() > mergeJoin.blocksAccessed()) {
-         System.out.println("merge preferred");
-         p = mergeJoin;
-      }
-      Plan hashJoin = makeHashJoin(current, currsch);
-      if (p == null || hashJoin != null && p.blocksAccessed() > hashJoin.blocksAccessed()) {
-    	  System.out.println("hashjoin preferred");
-    	  p = hashJoin;
-      }
+      // Plan blockJoin = makeBlockNestedJoin(current, currsch);
+      // if (p == null || p.blocksAccessed() > blockJoin.blocksAccessed()){
+      //    System.out.println("nested preferred");
+      //    p = blockJoin;
+      // }
+      // Plan mergeJoin = makeMergeJoin(current, currsch);
+      // if (p == null || mergeJoin != null && p.blocksAccessed() > mergeJoin.blocksAccessed()) {
+      //    System.out.println("merge preferred");
+      //    p = mergeJoin;
+      // }
+      // Plan hashJoin = makeHashJoin(current, currsch);
+      // if (p == null || hashJoin != null && p.blocksAccessed() > hashJoin.blocksAccessed()) {
+    	//   System.out.println("hashjoin preferred");
+    	//   p = hashJoin;
+      // }
       return p;
    }
    
