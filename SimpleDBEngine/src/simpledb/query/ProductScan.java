@@ -89,6 +89,16 @@ public class ProductScan implements Scan {
    }
 
    /**
+    * Forces scan to return associated value of field from s2.
+
+    * @param fldname
+    * @return value of s2 associated with the fldname
+    */
+   public Constant s2getVal(String fldname){
+      return s2.getVal(fldname);
+   }
+
+   /**
     * Returns true if the specified field is in
     * either of the underlying scans.
     * @see simpledb.query.Scan#hasField(java.lang.String)
