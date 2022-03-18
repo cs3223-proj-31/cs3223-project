@@ -16,6 +16,7 @@ public class QueryData {
    private Collection<String> tables;
    private Predicate pred;
    private List<List<String>> sortFields;
+   private boolean distinct;
    private List<String> groupByfields;
    private List<AggregationFn> aggFns;
    private List<String> allFields;
@@ -30,21 +31,14 @@ public class QueryData {
    // this.pred = pred;
    // }
 
-   // public QueryData(List<String> fields, Collection<String> tables, Predicate
-   // pred, List<List<String>> sortFields) {
-   // this.fields = fields;
-   // this.tables = tables;
-   // this.pred = pred;
-   // this.sortFields = sortFields;
-   // }
-
    public QueryData(List<String> fields, Collection<String> tables, Predicate pred, List<List<String>> sortFields,
-         List<String> groupByfields) {
+         List<String> groupByfields, boolean distinct) {
       setFields(fields);
       this.tables = tables;
       this.pred = pred;
       this.sortFields = sortFields;
       this.groupByfields = groupByfields;
+      this.distinct = distinct;
    }
 
    /**
@@ -155,8 +149,13 @@ public class QueryData {
       return pred;
    }
 
+   public boolean distinct() {
+      return distinct;
+   }
+
    public String toString() {
       String result = "select ";
+      if(distinct) result += "distinct ";
       for (String fldname : fields)
          result += fldname + ", ";
       result = result.substring(0, result.length() - 2); // remove final comma
