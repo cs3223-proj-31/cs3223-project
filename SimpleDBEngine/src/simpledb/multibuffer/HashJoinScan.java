@@ -2,7 +2,6 @@ package simpledb.multibuffer;
 
 import java.util.HashMap;
 import simpledb.materialize.TempTable;
-import simpledb.plan.Plan;
 import simpledb.query.Constant;
 import simpledb.query.Scan;
 import simpledb.query.UpdateScan;
@@ -16,8 +15,8 @@ public class HashJoinScan implements Scan {
 	private Schema lhssch;
 	
 	private int scanpairidx;
-	private Scan lhscurscan, rhscurscan, tempscan;
-	private HashMap<Constant, UpdateScan> ht;
+	private Scan lhscurscan, rhscurscan, htcurscan;
+	private HashMap<Constant, TempTable> ht;
 	
 	public HashJoinScan(TempTable[] lhstts, TempTable[] rhstts, String lhsjoinfld, String rhsjoinfld, Transaction tx, Schema lhssch) {
 		this.lhstts = lhstts;
@@ -46,36 +45,33 @@ public class HashJoinScan implements Scan {
 		buildHashTableOnLhsPartScan();
 	}
 	
-	public void buildHashTableOnLhsPartScan() {
-		for (Constant key : ht.keySet()) {
-			ht.get(key).close();
-		}
-		
+	public void buildHashTableOnLhsPartScan() {		
 		ht.clear();
 		lhscurscan.beforeFirst();
 		while (lhscurscan.next()) {
 			Constant joinfieldval = lhscurscan.getVal(lhsjoinfld);			
-			ht.putIfAbsent(joinfieldval, new TempTable(tx, lhssch).open());
-			UpdateScan mapscan = ht.get(joinfieldval);
+			ht.putIfAbsent(joinfieldval, new TempTable(tx, lhssch));
+			UpdateScan mapscan = ht.get(joinfieldval).open();
+			
+			// Move pointer to last record.
+			while (mapscan.next());
 			
 			mapscan.insert();
 			// Copy record of lhscurscan to tempscan.
 			for (String fldname : lhssch.fields()) {
 				mapscan.setVal(fldname, lhscurscan.getVal(fldname));
 			}
-		}
-		
-		// Reset pointers to point at the first record.
-		for (Constant key : ht.keySet()) {
-			ht.get(key).beforeFirst();
-		}
-		
+			mapscan.close();
+		}		
 		lhscurscan.close();
 	}
 	
 	@Override
 	public boolean next() {
-		while (tempscan == null || !tempscan.next()) {			
+		while (htcurscan == null || !htcurscan.next()) {
+			if (htcurscan != null)
+				htcurscan.close();
+			
 			while (!rhscurscan.next()) {
 				rhscurscan.close();
 				
@@ -94,8 +90,12 @@ public class HashJoinScan implements Scan {
 			
 			// Get the tempscan from the hash table.
 			Constant joinfieldval = rhscurscan.getVal(rhsjoinfld);
-			tempscan = ht.get(joinfieldval);
-			tempscan.beforeFirst();
+			htcurscan = ht.containsKey(joinfieldval)
+					       ? ht.get(joinfieldval).open()
+					       : null;
+			
+			if (htcurscan != null)
+				htcurscan.beforeFirst();
 		}
 		
 		return true;
@@ -103,8 +103,8 @@ public class HashJoinScan implements Scan {
 
 	@Override
 	public int getInt(String fldname) {
-		if (tempscan.hasField(fldname)) {
-			return tempscan.getInt(fldname);
+		if (htcurscan.hasField(fldname)) {
+			return htcurscan.getInt(fldname);
 		}
 		
 		return rhscurscan.getInt(fldname);
@@ -112,8 +112,8 @@ public class HashJoinScan implements Scan {
 
 	@Override
 	public String getString(String fldname) {
-		if (tempscan.hasField(fldname)) {
-			return tempscan.getString(fldname);
+		if (htcurscan.hasField(fldname)) {
+			return htcurscan.getString(fldname);
 		}
 		
 		return rhscurscan.getString(fldname);
@@ -121,8 +121,8 @@ public class HashJoinScan implements Scan {
 
 	@Override
 	public Constant getVal(String fldname) {
-		if (tempscan.hasField(fldname)) {
-			return tempscan.getVal(fldname);
+		if (htcurscan.hasField(fldname)) {
+			return htcurscan.getVal(fldname);
 		}
 		
 		return rhscurscan.getVal(fldname);
@@ -130,16 +130,17 @@ public class HashJoinScan implements Scan {
 
 	@Override
 	public boolean hasField(String fldname) {
-		return tempscan.hasField(fldname) || rhscurscan.hasField(fldname);
+		return htcurscan.hasField(fldname) || rhscurscan.hasField(fldname);
 	}
 
 	@Override
 	public void close() {
-		// Should cover tempscan.
-		for (Constant key : ht.keySet()) {
-			ht.get(key).close();
+		// Close the hash table scan if it is open.
+		try {
+			htcurscan.close();
+		} catch (Exception e) {
+			// Do nothing.
 		}
-		
 		ht.clear();		
 	}
 
