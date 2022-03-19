@@ -80,12 +80,7 @@ public class HashJoinPlan implements Plan {
 	private void hashDistributeRecords(Plan p, TempTable[] tts) {
 		int h, k = tts.length;
 		Constant joinfldval;
-		UpdateScan[] uss = new UpdateScan[k];
-		
-		// Open a scan for k temp tables.
-		for (int i = 0; i < k; i++) {
-			uss[i] = tts[i].open();
-		}
+		UpdateScan us;
 		
 		Scan scan = p.open();
 		Schema sch = p.schema();
@@ -99,14 +94,12 @@ public class HashJoinPlan implements Plan {
 			// ...hash the record's join field to get h...
 			h = hashWithinK(k, joinfldval);
 			// ...and copy the record to the h-th temp table.
-			uss[h].insert();
+			us = tts[h].open();
+			while (us.next());
+			us.insert();
 			for (String fldname : sch.fields()) {
-				uss[h].setVal(fldname, scan.getVal(fldname));
+				us.setVal(fldname, scan.getVal(fldname));
 			}
-		}
-		
-		// Close the temp scans.
-		for (UpdateScan us : uss) {
 			us.close();
 		}
 		
