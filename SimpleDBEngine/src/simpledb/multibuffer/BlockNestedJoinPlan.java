@@ -19,6 +19,8 @@ public class BlockNestedJoinPlan implements Plan {
     * @param p1 the plan for the p1 query
     * @param p2 the plan for the p2 query
     * @param tx the calling transaction
+    * @param fldname1 LHS field name used in join
+    * @param fldname2 RHS field name used in join
     */
    public BlockNestedJoinPlan(Transaction tx, Plan p1, Plan p2, String fldname1, String fldname2) {
 	this.tx = tx;

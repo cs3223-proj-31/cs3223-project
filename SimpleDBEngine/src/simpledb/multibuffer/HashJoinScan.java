@@ -18,7 +18,17 @@ public class HashJoinScan implements Scan {
 	private int scanpairidx;
 	private Scan lhscurscan, rhscurscan, tempscan;
 	private HashMap<Constant, UpdateScan> ht;
-	
+
+	/**
+	 * Create a hashjoin scan using the partitioned underlying tables.
+	 * 
+	 * @param lhstts hashtable for LHS table
+	 * @param rhstts hashtable for RHS table
+	 * @param lhsjoinfld the lhs join field
+	 * @param rhsjoinfld the rhs join field
+	 * @param tx the calling transaction
+	 * @param lhssch the schema of LHS table
+	 */
 	public HashJoinScan(TempTable[] lhstts, TempTable[] rhstts, String lhsjoinfld, String rhsjoinfld, Transaction tx, Schema lhssch) {
 		this.lhstts = lhstts;
 		this.rhstts = rhstts;
@@ -30,6 +40,14 @@ public class HashJoinScan implements Scan {
 		beforeFirst();
 	}
 
+	/**
+	 * Position the scan before the first record,
+    * by retrieving the first partition of 
+		* LHS and RHS hash table, and re-hashing
+		* LHS partition for use in comparison with
+		* RHS partition values.
+    * @see simpledb.query.Scan#beforeFirst()
+	 */
 	@Override
 	public void beforeFirst() {
 		if (lhscurscan != null) {
@@ -46,6 +64,10 @@ public class HashJoinScan implements Scan {
 		buildHashTableOnLhsPartScan();
 	}
 	
+	/**
+	 * Hashes next LHS partition into a hashtable to be retrieved by
+	 * matching RHS values from corresponding RHS partition in next().
+	 */
 	public void buildHashTableOnLhsPartScan() {
 		for (Constant key : ht.keySet()) {
 			ht.get(key).close();
@@ -73,6 +95,12 @@ public class HashJoinScan implements Scan {
 		lhscurscan.close();
 	}
 	
+	/** 
+	 * The method retrieves the next value from the current 
+	 * RHS partition, compares it with the LHS hashtable ht
+	 * and repeats this process until a valid (LHS, RHS) join
+	 * record is found.
+	 */
 	@Override
 	public boolean next() {
 		while (tempscan == null || !tempscan.next()) {			
@@ -133,6 +161,10 @@ public class HashJoinScan implements Scan {
 		return tempscan.hasField(fldname) || rhscurscan.hasField(fldname);
 	}
 
+	/**
+    * Close the scan by closing joined tables in ht.
+    * @see simpledb.query.Scan#close()
+    */
 	@Override
 	public void close() {
 		// Should cover tempscan.
