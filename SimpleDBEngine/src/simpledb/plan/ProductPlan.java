@@ -76,4 +76,9 @@ public class ProductPlan implements Plan {
    public Schema schema() {
       return schema;
    }
+   
+   @Override
+   public String toString() {
+	   return "(" + p1.toString() + " product " + p2.toString() + ")";
+   }
 }

@@ -16,6 +16,8 @@ public class SortPlan implements Plan {
    private Plan p;
    private Schema sch;
    private RecordComparator comp;
+   private List<String> sortfields;
+   private List<List<String>> sortfieldsReal;
 
    /**
     * Create a sort plan for the specified query.
@@ -28,6 +30,7 @@ public class SortPlan implements Plan {
       this.tx = tx;
       this.p = p;
       sch = p.schema();
+      this.sortfields = sortfields;
       comp = new RecordComparator(sortfields);
    }
 
@@ -36,6 +39,7 @@ public class SortPlan implements Plan {
       this.tx = tx;
       this.p = p;
       sch = p.schema();
+      this.sortfieldsReal = sortfields;
       comp = new RecordComparator(sortfields, true);
    }
 
@@ -165,5 +169,10 @@ public class SortPlan implements Plan {
       for (String fldname : sch.fields())
          dest.setVal(fldname, src.getVal(fldname));
       return src.next();
+   }
+
+   public String toString() {
+      // Either sortfields or sortfieldsReal will be empty, so won't have duplicates
+      return "Sort by: " + this.sortfields.toString() + this.sortfieldsReal.toString();
    }
 }
