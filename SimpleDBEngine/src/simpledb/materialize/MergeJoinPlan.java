@@ -15,6 +15,7 @@ public class MergeJoinPlan implements Plan {
    private Plan p1, p2;
    private String fldname1, fldname2;
    private Schema sch = new Schema();
+   private Transaction tx;
    
    /**
     * Creates a mergejoin plan for the two specified queries.
@@ -27,6 +28,7 @@ public class MergeJoinPlan implements Plan {
     * @param tx the calling transaction
     */
    public MergeJoinPlan(Transaction tx, Plan p1, Plan p2, String fldname1, String fldname2) {
+      this.tx = tx;
       this.fldname1 = fldname1;
       List<String> sortlist1 = Arrays.asList(fldname1);
       this.p1 = new SortPlan(tx, p1, sortlist1);
@@ -54,15 +56,23 @@ public class MergeJoinPlan implements Plan {
     * Return the number of block acceses required to
     * mergejoin the sorted tables.
     * Since a mergejoin can be preformed with a single
-    * pass through each table, the method returns
-    * the sum of the block accesses of the 
+    * pass through each sorted table, the join step 
+    * equals to the sum of the block accesses of the 
     * materialized sorted tables.
-    * It does <i>not</i> include the one-time cost
+    *
+    * It <i>does</i> include the one-time cost
     * of materializing and sorting the records.
     * @see simpledb.plan.Plan#blocksAccessed()
     */
-   public int blocksAccessed() {
-      return p1.blocksAccessed() + p2.blocksAccessed();
+   public int blocksAccessed() {      
+      // sort cost
+      int cost = p1.blocksAccessed() + p2.blocksAccessed();
+
+      //join cost
+      cost += new MaterializePlan(tx, p1).blocksAccessed();
+      cost += new MaterializePlan(tx, p2).blocksAccessed();
+
+      return cost;
    }
    
    /**

@@ -60,18 +60,20 @@ public class SortPlan implements Plan {
    }
 
    /**
-    * Return the number of blocks in the sorted table,
-    * which is the same as it would be in a
-    * materialized table.
-    * It does <i>not</i> include the one-time cost
-    * of materializing and sorting the records.
+    * Return the number of page I/Os used to process the 2-way merge sort.
+    * This includes the number of page I/Os used to materialise and sort the
+    * underlying plans. Due to the wildly unpredictable nature of the greedy
+    * method used to generate initial runs, we elected to arbitrarily use
+    * planSize/2 as the number of initial starting runs, generously assuming
+    * that each starting run contains 2 pages worth of records.
     * 
     * @see simpledb.plan.Plan#blocksAccessed()
     */
    public int blocksAccessed() {
       // does not include the one-time cost of sorting
       Plan mp = new MaterializePlan(tx, p); // not opened; just for analysis
-      return mp.blocksAccessed();
+      int planSize = mp.blocksAccessed();
+      return 2 * planSize * (int)(1+Math.log(planSize/2));
    }
 
    /**
