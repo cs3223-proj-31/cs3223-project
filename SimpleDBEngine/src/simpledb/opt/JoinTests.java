@@ -33,10 +33,13 @@ public class JoinTests {
     Plan idtwoplan = new TablePlan(tx, "testtwo", mdm);
     Plan idthreeplan = new TablePlan(tx, "testthree", mdm);
     Plan idfourplan = new TablePlan(tx, "testfour", mdm);
-    Plan joinplan1 = new IndexJoinPlan(idoneplan, idtwoplan, sidIdx, "sid1");
-    Plan joinplan2 = new IndexJoinPlan(joinplan1, idthreeplan, sidIdx, "sid2");
-    Plan joinplan3 = new IndexJoinPlan(joinplan2, idfourplan, sidIdx, "sid3");
-    Scan s = joinplan.open();
+    
+    Plan joinplan1 = new HashJoinPlan(tx, idoneplan, idtwoplan, "sid1", "sid2");
+    Plan joinplan2 = new HashJoinPlan(tx, joinplan1, idthreeplan, "sid2", "sid3");
+    Plan joinplan3 = new HashJoinPlan(tx, joinplan2, idfourplan, "sid3", "sid4");
+    
+    // Plan joinplan = new HashJoinPlan(tx, idoneplan, idtwoplan, "sid1", "sid2");
+    Scan s = joinplan3.open();
     while (s.next());
     tx.commit();
     final long endTime = System.currentTimeMillis();
