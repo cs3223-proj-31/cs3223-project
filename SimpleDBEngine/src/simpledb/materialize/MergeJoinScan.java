@@ -46,7 +46,21 @@ public class MergeJoinScan implements Scan {
       s1.beforeFirst();
       s2.beforeFirst();
       s1.next();
-      joinval = s1.getVal(fldname1);
+      boolean hasmore2 = s2.next();
+      boolean hasmore1 = s1.next();
+      
+      while (hasmore1 && hasmore2) {
+         Constant v1 = s1.getVal(fldname1);
+         Constant v2 = s2.getVal(fldname2);
+         if (v1.compareTo(v2) < 0)
+            hasmore1 = s1.next();
+         else if (v1.compareTo(v2) > 0)
+            hasmore2 = s2.next();
+         else {
+            s2.savePosition();
+            joinval  = s2.getVal(fldname2);
+         }
+      }
    }
    
    /**
