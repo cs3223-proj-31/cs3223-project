@@ -155,8 +155,10 @@ class TablePlanner {
    
    private Plan makeHashJoin(Plan current, Schema currsch) {
 	   String mpjoinfld=null, curjoinfld=null, tempfld;
+	   Predicate subpred = mypred.joinSubPred(myschema, currsch);
+	   
 	   for (String curfldname : currsch.fields()) {
-		   tempfld = mypred.equatesWithField(curfldname);
+		   tempfld = subpred.equatesWithField(curfldname);
 		   if (tempfld != null) {
 			   mpjoinfld = tempfld;
 			   curjoinfld = curfldname;
