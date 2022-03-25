@@ -97,6 +97,11 @@ public class MultibufferProductPlan implements Plan {
    public Schema schema() {
       return schema;
    }
+   
+   @Override
+   public String toString() {
+	   return "(" + lhs.toString() + " mb-product " + rhs.toString() + ")";
+   }
 
    private TempTable copyRecordsFrom(Plan p) {
       Scan   src = p.open(); 

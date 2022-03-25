@@ -19,6 +19,8 @@ public class BlockNestedJoinPlan implements Plan {
     * @param p1 the plan for the p1 query
     * @param p2 the plan for the p2 query
     * @param tx the calling transaction
+    * @param fldname1 LHS field name used in join
+    * @param fldname2 RHS field name used in join
     */
    public BlockNestedJoinPlan(Transaction tx, Plan p1, Plan p2, String fldname1, String fldname2) {
 	this.tx = tx;
@@ -100,6 +102,11 @@ public class BlockNestedJoinPlan implements Plan {
     */
    public Schema schema() {
       return schema;
+   }
+   
+   @Override
+   public String toString() {
+	   return "(" + p1.toString() + " block nested join " + p2.toString() + ")";
    }
 
    // effectively materialise.open(), but return temptable instead of scan
