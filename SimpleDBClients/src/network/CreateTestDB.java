@@ -13,6 +13,10 @@ public class CreateTestDB {
          String s = "create table TESTONE(SName1 varchar(20), SId1 int)";
          stmt.executeUpdate(s);
          System.out.println("Table TESTONE created.");
+         
+         s = "create index idxone on TESTONE(SId1) using btree";
+         stmt.executeUpdate(s);
+         System.out.println("TESTONE btree(sid1) created");
 
          s = "insert into TESTONE(SName1, SId1 ) values ";
          String[] test1 = {"('Chase', 25)",
@@ -123,6 +127,10 @@ public class CreateTestDB {
          s = "create table TESTTWO(SName2 varchar(20), SId2 int)";
          stmt.executeUpdate(s);
          System.out.println("Table TESTTWO created.");
+         
+         s = "create index idxtwo on TESTTWO(SId2) using btree";
+         stmt.executeUpdate(s);
+         System.out.println("TESTTWO btree(sid2) created");
 
          s = "insert into TESTTWO(SName2, SId2) values ";
          String[] test2 = {"('Harriet', 35)",
@@ -233,6 +241,10 @@ public class CreateTestDB {
          s = "create table TESTTHREE(SName3 varchar(20), SId3 int)";
          stmt.executeUpdate(s);
          System.out.println("Table TESTTHREE created.");
+         
+         s = "create index idxthree on TESTTHREE(SId3) using btree";
+         stmt.executeUpdate(s);
+         System.out.println("TESTTHREE(SId3) btree created");
 
          s = "insert into TESTTHREE(SName3, SId3) values ";
          String[] test3 = {"('Tanek', 30)",
@@ -343,6 +355,10 @@ public class CreateTestDB {
          s = "create table TESTFOUR(SName4 varchar(20), SId4 int)";
          stmt.executeUpdate(s);
          System.out.println("Table TESTFOUR created.");
+         
+         s = "create index idxfour on TESTFOUR(SId4) using btree";
+         stmt.executeUpdate(s);
+         System.out.println("TESTFOUR(SId4) btree created");
 
          s = "insert into TESTFOUR(SName4, SId4) values ";
          String[] test4 = {"('Ezra', 49)",

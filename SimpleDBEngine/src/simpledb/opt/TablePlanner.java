@@ -84,6 +84,7 @@ class TablePlanner {
     	//   System.out.println("hashjoin preferred");
     	//   p = hashJoin;
       // }
+      // Plan p = makeHashJoin(current, currsch);
       return p;
    }
    
@@ -153,15 +154,27 @@ class TablePlanner {
    }
    
    private Plan makeHashJoin(Plan current, Schema currsch) {
-	   for (String fldname : myschema.fields()) {
-	         String outerfield = mypred.equatesWithField(fldname);
-	         if (outerfield != null && currsch.hasField(outerfield)) {
-	            Plan p = new HashJoinPlan(tx, myplan, current, fldname, outerfield);
-	            p = addSelectPred(p);
-	            return addJoinPred(p, currsch);
-	         }
-	      }
-	      return null;
+	   String mpjoinfld=null, curjoinfld=null, tempfld;
+	   Predicate subpred = mypred.joinSubPred(myschema, currsch);
+	   
+	   for (String curfldname : currsch.fields()) {
+		   tempfld = subpred.equatesWithField(curfldname);
+		   if (tempfld != null) {
+			   mpjoinfld = tempfld;
+			   curjoinfld = curfldname;
+			   break;
+		   }
+	   }
+	   
+	   // Debugging.
+	   // System.out.println("Join on " + mpjoinfld + "=" + curjoinfld);
+	   // System.out.println("Tables " + myplan.schema().hasField(mpjoinfld) + " and " + current.schema().hasField(curjoinfld));
+	   
+	   // No matching fields; return null.
+	   if (mpjoinfld == null && curjoinfld == null) {
+		   return null;
+	   }
+	   return new HashJoinPlan(tx, myplan, current, mpjoinfld, curjoinfld);
    }
    
    private Plan addSelectPred(Plan p) {
